@@ -3,12 +3,11 @@ require '../auth.php';
 require_role('admin');
 require '../connect.php';
 
-// Lấy danh sách đội bóng (cho HLV hoặc Player chọn)
-$doibong = $conn->query("SELECT ID_DOI_BONG, TEN_DOI_BONG FROM DOI_BONG");
+// Lấy danh sách đội chưa có HLV
+$doibong = $conn->query("SELECT ID_DOI_BONG, TEN_DOI_BONG FROM DOI_BONG WHERE HUAN_LUYEN_VIEN IS NULL");
 
-// Xử lý thêm người dùng
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $ten = trim($_POST['ten']);
+    $ten = $_POST['ten'];
     $mk = $_POST['mk'];
     $email = $_POST['email'];
     $sdt = $_POST['sdt'];
@@ -16,28 +15,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vaitro = $_POST['vaitro'];
     $id_doi = $_POST['id_doi'] ?? null;
 
-    // ✅ Hash mật khẩu an toàn
-    $hashed_pass = password_hash($mk, PASSWORD_DEFAULT);
-
-    // ✅ Tạo người dùng mới
+    // Tạo người dùng
     $stmt = $conn->prepare("INSERT INTO NGUOI_DUNG (TEN_DANG_NHAP, MAT_KHAU, EMAIL, SDT, NGAY_SINH, VAI_TRO)
                             VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssss", $ten, $hashed_pass, $email, $sdt, $ngay, $vaitro);
+    $stmt->bind_param("ssssss", $ten, $mk, $email, $sdt, $ngay, $vaitro);
     $stmt->execute();
 
-    // ✅ Gán HLV hoặc Player vào đội bóng
+    // Gán HLV vào đội nếu có
     if ($vaitro === 'hlv' && $id_doi) {
         $conn->query("UPDATE DOI_BONG SET HUAN_LUYEN_VIEN = '$ten' WHERE ID_DOI_BONG = $id_doi");
-    } elseif ($vaitro === 'player' && $id_doi) {
-        // Nếu bạn có bảng CAU_THU liên kết người dùng với đội
-        $user_id = $conn->insert_id;
-        $stmt_player = $conn->prepare("INSERT INTO CAU_THU (HO_TEN, ID_DOI_BONG, ID_NGUOI_DUNG) VALUES (?, ?, ?)");
-        $stmt_player->bind_param("sii", $ten, $id_doi, $user_id);
-        $stmt_player->execute();
     }
 
     header("Location: nguoidung.php");
-    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -60,7 +49,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: #2c3e50;
             margin-bottom: 20px;
         }
-        .form-label { font-weight: 500; }
+        .form-label {
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -77,7 +68,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="mb-3">
             <label class="form-label">Mật khẩu</label>
             <input type="text" name="mk" class="form-control" required>
-            <div class="form-text text-muted">Mật khẩu sẽ được mã hoá (hash) tự động.</div>
         </div>
 
         <div class="mb-3">
@@ -101,7 +91,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <option value="">-- Chọn vai trò --</option>
                 <option value="admin">Admin</option>
                 <option value="hlv">HLV</option>
-                <option value="player">Player</option>
                 <option value="viewer">Viewer</option>
             </select>
         </div>
@@ -111,18 +100,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <select name="id_doi" class="form-select">
                 <option value="">-- Chọn đội bóng --</option>
                 <?php while ($d = $doibong->fetch_assoc()) { ?>
-                    <option value="<?= $d['ID_DOI_BONG'] ?>"><?= htmlspecialchars($d['TEN_DOI_BONG']) ?></option>
+                    <option value="<?= $d['ID_DOI_BONG'] ?>"><?= $d['TEN_DOI_BONG'] ?></option>
                 <?php } ?>
             </select>
         </div>
 
         <div class="d-flex justify-content-between">
-            <a href="nguoidung.php" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Quay lại
-            </a>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle"></i> Thêm người dùng
-            </button>
+            <a href="nguoidung.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Thêm người dùng</button>
         </div>
     </form>
 </div>
@@ -134,11 +119,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     const doiGroup = document.getElementById('doibong-group');
 
     roleSelect.addEventListener('change', () => {
-        doiGroup.style.display = (roleSelect.value === 'hlv' || roleSelect.value === 'player') ? 'block' : 'none';
+        doiGroup.style.display = roleSelect.value === 'hlv' ? 'block' : 'none';
     });
 
-    // Nếu reload lại giữ nguyên hiển thị nhóm đội bóng
-    if (roleSelect.value === 'hlv' || roleSelect.value === 'player') doiGroup.style.display = 'block';
+    // Hiển thị sẵn nếu reload
+    if (roleSelect.value === 'hlv') doiGroup.style.display = 'block';
 </script>
 </body>
 </html>

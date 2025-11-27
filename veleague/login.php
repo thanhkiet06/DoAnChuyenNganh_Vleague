@@ -40,12 +40,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 case 'hlv':
                     header("Location: hlv/index.php");
                     break;
-                case 'player':
-                case 'viewer':
-                    header("Location: player/index.php");
-                    break;
+               
                 default:
-                    header("Location: index.php");
+                    header("Location: viewer/index.php");
                     break;
             }
             exit;

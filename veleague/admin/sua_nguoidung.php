@@ -3,19 +3,17 @@ require '../auth.php';
 require_role('admin');
 require '../connect.php';
 
-// Lấy ID user cần sửa
-$id = intval($_GET['id']);
+$id = $_GET['id'];
 $u = $conn->query("SELECT * FROM NGUOI_DUNG WHERE ID_NGUOI_DUNG = $id")->fetch_assoc();
 
-// Lấy danh sách đội bóng cho HLV/Player
+// Danh sách đội bóng chưa có HLV hoặc là đội đang gán với user hiện tại
 $doibong = $conn->query("
     SELECT * FROM DOI_BONG 
     WHERE HUAN_LUYEN_VIEN IS NULL OR HUAN_LUYEN_VIEN = '{$u['TEN_DANG_NHAP']}'
 ");
 
-// Khi form được submit
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $ten = trim($_POST['ten']);
+    $ten = $_POST['ten'];
     $mk = $_POST['mk'];
     $email = $_POST['email'];
     $sdt = $_POST['sdt'];
@@ -23,47 +21,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vaitro = $_POST['vaitro'];
     $id_doi = $_POST['id_doi'] ?? null;
 
-    // Nếu người dùng nhập lại mật khẩu mới → hash lại
-    if (!empty($mk)) {
-        // Nếu nhập mật khẩu trùng với hash cũ, giữ nguyên
-        if (!password_verify($mk, $u['MAT_KHAU'])) {
-            $hashed_pass = password_hash($mk, PASSWORD_DEFAULT);
-        } else {
-            $hashed_pass = $u['MAT_KHAU'];
-        }
-    } else {
-        $hashed_pass = $u['MAT_KHAU'];
-    }
-
     // Cập nhật người dùng
-    $stmt = $conn->prepare("UPDATE NGUOI_DUNG 
-                            SET TEN_DANG_NHAP=?, MAT_KHAU=?, EMAIL=?, SDT=?, NGAY_SINH=?, VAI_TRO=? 
-                            WHERE ID_NGUOI_DUNG=?");
-    $stmt->bind_param("ssssssi", $ten, $hashed_pass, $email, $sdt, $ngay, $vaitro, $id);
+    $stmt = $conn->prepare("UPDATE NGUOI_DUNG SET TEN_DANG_NHAP=?, MAT_KHAU=?, EMAIL=?, SDT=?, NGAY_SINH=?, VAI_TRO=? WHERE ID_NGUOI_DUNG=?");
+    $stmt->bind_param("ssssssi", $ten, $mk, $email, $sdt, $ngay, $vaitro, $id);
     $stmt->execute();
 
-    // Reset đội nếu người này là HLV cũ
+    // Reset tất cả đội có HLV cũ là user này nếu đổi vai trò hoặc đội
     $conn->query("UPDATE DOI_BONG SET HUAN_LUYEN_VIEN = NULL WHERE HUAN_LUYEN_VIEN = '{$u['TEN_DANG_NHAP']}'");
 
-    // Gán HLV vào đội
+    // Gán lại nếu là HLV và chọn đội
     if ($vaitro === 'hlv' && $id_doi) {
         $conn->query("UPDATE DOI_BONG SET HUAN_LUYEN_VIEN = '$ten' WHERE ID_DOI_BONG = $id_doi");
     }
 
-    // Gán Player vào đội (nếu có bảng CAU_THU)
-    if ($vaitro === 'player' && $id_doi) {
-        $check = $conn->query("SELECT * FROM CAU_THU WHERE ID_NGUOI_DUNG = $id");
-        if ($check->num_rows > 0) {
-            $conn->query("UPDATE CAU_THU SET ID_DOI_BONG = $id_doi WHERE ID_NGUOI_DUNG = $id");
-        } else {
-            $stmt2 = $conn->prepare("INSERT INTO CAU_THU (HO_TEN, ID_DOI_BONG, ID_NGUOI_DUNG) VALUES (?, ?, ?)");
-            $stmt2->bind_param("sii", $ten, $id_doi, $id);
-            $stmt2->execute();
-        }
-    }
-
     header("Location: nguoidung.php");
-    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -80,13 +51,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: #f8f9fa;
             padding: 40px;
         }
+
         .heading {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 32px;
             color: #2c3e50;
             margin-bottom: 20px;
         }
-        .form-label { font-weight: 500; }
+
+        .form-label {
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -97,28 +72,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <form method="POST" class="bg-white p-4 rounded shadow-sm">
         <div class="mb-3">
             <label class="form-label">Tên đăng nhập</label>
-            <input type="text" name="ten" class="form-control" required value="<?= htmlspecialchars($u['TEN_DANG_NHAP']) ?>">
+            <input type="text" name="ten" class="form-control" required value="<?= $u['TEN_DANG_NHAP'] ?>">
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Mật khẩu (để trống nếu không đổi)</label>
-            <input type="password" name="mk" class="form-control" placeholder="Nhập mật khẩu mới (nếu muốn)">
-            <div class="form-text text-muted">Hệ thống sẽ tự động mã hoá mật khẩu mới.</div>
+            <label class="form-label">Mật khẩu</label>
+            <input type="text" name="mk" class="form-control" required value="<?= $u['MAT_KHAU'] ?>">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" required value="<?= htmlspecialchars($u['EMAIL']) ?>">
+            <input type="email" name="email" class="form-control" required value="<?= $u['EMAIL'] ?>">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Số điện thoại</label>
-            <input type="text" name="sdt" class="form-control" value="<?= htmlspecialchars($u['SDT']) ?>">
+            <input type="text" name="sdt" class="form-control" value="<?= $u['SDT'] ?>">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Ngày sinh</label>
-            <input type="date" name="ngay" class="form-control" value="<?= htmlspecialchars($u['NGAY_SINH']) ?>">
+            <input type="date" name="ngay" class="form-control" value="<?= $u['NGAY_SINH'] ?>">
         </div>
 
         <div class="mb-3">
@@ -126,7 +100,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <select name="vaitro" class="form-select" required>
                 <option value="admin" <?= $u['VAI_TRO'] == 'admin' ? 'selected' : '' ?>>Admin</option>
                 <option value="hlv" <?= $u['VAI_TRO'] == 'hlv' ? 'selected' : '' ?>>HLV</option>
-                <option value="player" <?= $u['VAI_TRO'] == 'player' ? 'selected' : '' ?>>Player</option>
                 <option value="viewer" <?= $u['VAI_TRO'] == 'viewer' ? 'selected' : '' ?>>Viewer</option>
             </select>
         </div>
@@ -136,9 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <select name="id_doi" class="form-select">
                 <option value="">-- Không thay đổi --</option>
                 <?php while ($d = $doibong->fetch_assoc()) { ?>
-                    <option value="<?= $d['ID_DOI_BONG'] ?>" 
-                        <?= ($d['HUAN_LUYEN_VIEN'] == $u['TEN_DANG_NHAP']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($d['TEN_DOI_BONG']) ?>
+                    <option value="<?= $d['ID_DOI_BONG'] ?>" <?= $d['HUAN_LUYEN_VIEN'] == $u['TEN_DANG_NHAP'] ? 'selected' : '' ?>>
+                        <?= $d['TEN_DOI_BONG'] ?>
                     </option>
                 <?php } ?>
             </select>
@@ -157,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     const doiGroup = document.getElementById('doibong-group');
 
     function toggleDoiBong() {
-        doiGroup.style.display = (roleSelect.value === 'hlv' || roleSelect.value === 'player') ? 'block' : 'none';
+        doiGroup.style.display = roleSelect.value === 'hlv' ? 'block' : 'none';
     }
 
     toggleDoiBong();
