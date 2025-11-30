@@ -12,8 +12,22 @@ if (!$team) {
 }
 
 $id_doi = $team['ID_DOI_BONG'];
-$result = $conn->query("SELECT * FROM CAU_THU WHERE ID_DOI_BONG = $id_doi");
+
+$keyword = "";          
+$where = "ID_DOI_BONG = $id_doi";
+
+    if (!empty($_GET['keyword'])) {
+         $keyword = $conn->real_escape_string($_GET['keyword']);
+         $where .= " AND (HO_TEN LIKE '%$keyword%' 
+                OR VI_TRI LIKE '%$keyword%'
+                OR SO_AO LIKE '%$keyword%')";
+}
+
+$sql = "SELECT * FROM CAU_THU WHERE $where";
+$result = $conn->query($sql);
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -74,6 +88,16 @@ $result = $conn->query("SELECT * FROM CAU_THU WHERE ID_DOI_BONG = $id_doi");
 <div class="container">
     <h2>📋 Danh sách cầu thủ đội của bạn</h2>
     <a href="them_cauthu.php" class="btn btn-them mb-3">+ Thêm cầu thủ</a>
+    
+     <form method="GET" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo tên, vị trí hoặc số áo..."
+               value="<?= isset($_GET['keyword']) ? htmlspecialchars($_GET['keyword']) : '' ?>">
+        <button class="btn btn-primary" type="submit">Tìm kiếm</button>
+        <a href="cauthu.php" class="btn btn-secondary">Xóa </a>
+    </div>
+</form>
+   
 
     <div class="table-responsive">
         <table class="table table-bordered align-middle text-center">

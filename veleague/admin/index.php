@@ -69,9 +69,12 @@ $so_yeucau = $conn->query("SELECT COUNT(*) FROM YEU_CAU_USER WHERE TRANG_THAI = 
 
     .heading {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 48px;
+        font-size: 40px;            /* nhỏ hơn, vừa mắt hơn */
+        font-weight: 600;
         color: #e94560;
+        letter-spacing: 1px;        /* chữ thoáng hơn */
     }
+
 
     .subtext {
         font-size: 18px;

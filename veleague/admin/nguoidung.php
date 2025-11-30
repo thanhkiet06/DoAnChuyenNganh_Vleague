@@ -29,10 +29,13 @@ if ($filter && in_array($filter, ['admin', 'hlv', 'viewer'])) {
         }
         .heading {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 36px;
+            font-size: 40x;
+            font-weight: 600;
             color: #2c3e50;
             margin-bottom: 20px;
+            letter-spacing: 1px; 
         }
+        
         .table th {
             background-color: #e9ecef;
         }

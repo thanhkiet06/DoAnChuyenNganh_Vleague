@@ -80,13 +80,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             width: 100%;
             max-width: 400px;
         }
-        .login-title {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 36px;
-            margin-bottom: 20px;
+      .login-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            font-weight: 600;
             text-align: center;
             color: #2c3e50;
-        }
+            letter-spacing: 1px;
+            /*white-space: nowrap; /* Giữ chữ trên 1 dòng */
+    }
     </style>
 </head>
 <body>
