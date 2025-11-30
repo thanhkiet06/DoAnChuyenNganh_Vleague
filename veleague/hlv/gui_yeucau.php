@@ -88,7 +88,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <button type="submit" class="btn btn-submit">Gửi yêu cầu</button>
+
         <a href="index.php" class="btn btn-secondary ms-2">← Quay lại</a>
+
+        <a href="lichsu_yeucau.php" class="btn btn-outline-primary ms-2">📜 Lịch sử yêu cầu</a>
+
+
     </form>
 </div>
 

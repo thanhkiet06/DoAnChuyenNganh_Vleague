@@ -3,6 +3,37 @@ require '../auth.php';
 require_role('admin');
 require '../connect.php';
 
+// Nếu admin click "Duyệt"
+if (isset($_GET['duyet_id'])) {
+    $idYeuCau = (int)$_GET['duyet_id'];
+
+    // 1. Cập nhật trạng thái YEU_CAU_USER
+    $stmt = $conn->prepare("UPDATE YEU_CAU_USER SET TRANG_THAI = 'Đã duyệt' WHERE ID_YEU_CAU = ?");
+    $stmt->bind_param("i", $idYeuCau);
+    $stmt->execute();
+
+    // 2. Lấy thông tin yêu cầu
+    $resultTmp = $conn->query("SELECT ID_NGUOI_DUNG, LOAI_YEU_CAU FROM YEU_CAU_USER WHERE ID_YEU_CAU = $idYeuCau");
+    $rowTmp = $resultTmp->fetch_assoc();
+
+    if ($rowTmp) {
+        $idNguoiDung = $rowTmp['ID_NGUOI_DUNG'];
+        $loaiYeuCau = $rowTmp['LOAI_YEU_CAU'];
+
+        // Nếu là yêu cầu HLV, cập nhật bảng HLV
+        if ($loaiYeuCau == 'HLV') {
+            $stmtHLV = $conn->prepare("UPDATE HLV SET TRANG_THAI = 'Đã duyệt' WHERE ID_NGUOI_DUNG = ?");
+            $stmtHLV->bind_param("i", $idNguoiDung);
+            $stmtHLV->execute();
+        }
+    }
+
+    // Quay lại trang để tránh reload
+    header("Location: danh_sach_yeucau.php");
+    exit;
+}
+
+// Lấy danh sách yêu cầu
 $result = $conn->query("SELECT y.*, n.TEN_DANG_NHAP FROM YEU_CAU_USER y 
                         JOIN NGUOI_DUNG n ON y.ID_NGUOI_DUNG = n.ID_NGUOI_DUNG");
 ?>

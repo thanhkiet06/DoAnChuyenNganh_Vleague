@@ -31,12 +31,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['gui_tinnhan'])) {
     $id_nguoi_nhan = !empty($_POST['id_nguoi_nhan']) ? intval($_POST['id_nguoi_nhan']) : null;
     $noi_dung = trim($_POST['noi_dung']);
     $ngay_gui = date('Y-m-d H:i:s');
+    $nguoi_thao_tac = $_SESSION['ten_dang_nhap']; // lưu ai thao tác
 
     if (!empty($noi_dung)) {
-        $stmt = $conn->prepare("INSERT INTO TIN_NHAN_NOI_BO (ID_NGUOI_GUI, ID_NGUOI_NHAN, ID_DOI_BONG, NOI_DUNG, NGAY_GUI) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iiiss", $id_nguoi_gui, $id_nguoi_nhan, $id_doi, $noi_dung, $ngay_gui);
+        // Gửi tin nhắn + lưu lịch sử thẳng vào bảng
+        $stmt = $conn->prepare("INSERT INTO TIN_NHAN_NOI_BO (ID_NGUOI_GUI, ID_NGUOI_NHAN, ID_DOI_BONG, NOI_DUNG, NGAY_GUI, NGUOI_THAO_TAC, NGAY_THAO_TAC)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iiissss", $id_nguoi_gui, $id_nguoi_nhan, $id_doi, $noi_dung, $ngay_gui, $nguoi_thao_tac, $ngay_gui);
+
         if ($stmt->execute()) {
-            $success = "Gửi tin nhắn thành công!";
+            $success = "Gửi tin nhắn thành công! Lịch sử đã được lưu.";
         } else {
             $error = "Lỗi khi gửi tin nhắn.";
         }
@@ -44,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['gui_tinnhan'])) {
         $error = "Vui lòng nhập nội dung tin nhắn.";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
