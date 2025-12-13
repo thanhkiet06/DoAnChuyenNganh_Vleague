@@ -66,8 +66,8 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     }
 
     h2 {
-        font-family: 'Bebas Neue', cursive;
-        font-size: 40px;
+        font-family: 'Inter', sans-serif;
+        font-size: 42px;
         color: #d90429;
         margin-bottom: 30px;
     }

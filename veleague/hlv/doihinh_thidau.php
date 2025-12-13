@@ -75,8 +75,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id_tran'])) {
     }
 
     h2 {
-        font-family: 'Bebas Neue', cursive;
-        font-size: 40px;
+        font-family: 'Inter', sans-serif;
+        font-size: 42px;
         color: #d90429;
         margin-bottom: 30px;
     }

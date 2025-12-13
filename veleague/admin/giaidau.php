@@ -38,17 +38,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_team_to_tournamen
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap"
         rel="stylesheet">
     <style>
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f8f9fa;
-        padding: 40px;
-    }
+     body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2f6;
+            padding: 25px;
+            color: #2c3e50;
+        }
 
-    .heading {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 36px;
-        color: #2c3e50;
-    }
+        .heading {
+            font-size: 40px;
+            font-weight: 600;
+            color: #1b263b;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
 
     .btn-sm {
         font-size: 14px;

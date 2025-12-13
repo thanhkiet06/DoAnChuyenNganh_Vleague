@@ -20,18 +20,20 @@ $trands = $conn->query("
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
     <style>
-        body {
+      body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            padding: 40px;
-        }
-
-        .heading {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 36px;
+            background-color: #eef2f6;
+            padding: 25px;
             color: #2c3e50;
         }
 
+        .heading {
+            font-size: 40px;
+            font-weight: 600;
+            color: #1b263b;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
         .btn-sm {
             font-size: 14px;
         }

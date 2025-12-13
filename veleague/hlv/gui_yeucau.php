@@ -42,8 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         h2 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 36px;
+            font-family: 'Inter', sans-serif;
+            font-size: 42px;
             color: #d90429;
             margin-bottom: 30px;
         }

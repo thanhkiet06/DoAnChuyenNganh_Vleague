@@ -17,15 +17,17 @@ $result = $conn->query("SELECT d.*, g.TEN_GIAI_DAU FROM DOI_BONG d
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            padding: 40px;
+            background-color: #eef2f6;
+            padding: 25px;
+            color: #2c3e50;
         }
 
         .heading {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 36px;
-            color: #2c3e50;
-            margin-bottom: 20px;
+            font-size: 40px;
+            font-weight: 600;
+            color: #1b263b;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
         }
 
         .table th {

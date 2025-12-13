@@ -22,18 +22,19 @@ if ($filter && in_array($filter, ['admin', 'hlv', 'viewer'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body {
+       body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            padding: 30px;
-        }
-        .heading {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 40x;
-            font-weight: 600;
+            background-color: #eef2f6;
+            padding: 25px;
             color: #2c3e50;
-            margin-bottom: 20px;
-            letter-spacing: 1px; 
+        }
+
+        .heading {
+            font-size: 40px;
+            font-weight: 600;
+            color: #1b263b;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
         }
         
         .table th {

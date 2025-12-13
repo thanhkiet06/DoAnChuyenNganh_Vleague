@@ -21,7 +21,7 @@ $cauthu = $conn->query("SELECT ID_CAU_THU, HO_TEN FROM CAU_THU WHERE ID_DOI_BONG
 $tinnhan = $conn->query("
     SELECT tn.*, c.HO_TEN
     FROM TIN_NHAN_NOI_BO tn
-    LEFT JOIN CAU_THU c ON tn.ID_NGUOI_NHAN = c.ID_CAU_THU
+     JOIN CAU_THU c ON tn.ID_NGUOI_NHAN = c.ID_CAU_THU
     WHERE tn.ID_NGUOI_GUI = $id_nguoi_gui AND tn.ID_DOI_BONG = $id_doi
     ORDER BY tn.NGAY_GUI DESC
 ");
@@ -73,8 +73,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['gui_tinnhan'])) {
     }
 
     h2 {
-        font-family: 'Bebas Neue', cursive;
-        font-size: 40px;
+        font-family: 'Inter', sans-serif;
+        font-size: 42px;
         color: #d90429;
         margin-bottom: 30px;
     }

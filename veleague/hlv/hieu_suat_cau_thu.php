@@ -39,9 +39,9 @@ $hieusuat = $conn->query("
     SELECT hs.*, c.HO_TEN, t.NGAY_THI_DAU, d1.TEN_DOI_BONG AS DOI_NHA, d2.TEN_DOI_BONG AS DOI_KHACH
     FROM HIEU_SUAT_CAU_THU hs
     JOIN CAU_THU c ON hs.ID_CAU_THU = c.ID_CAU_THU
-    LEFT JOIN TRAN_DAU t ON hs.ID_TRAN_DAU = t.ID_TRAN_DAU
-    LEFT JOIN DOI_BONG d1 ON t.ID_DOI_1 = d1.ID_DOI_BONG
-    LEFT JOIN DOI_BONG d2 ON t.ID_DOI_2 = d2.ID_DOI_BONG
+    JOIN TRAN_DAU t ON hs.ID_TRAN_DAU = t.ID_TRAN_DAU
+     JOIN DOI_BONG d1 ON t.ID_DOI_1 = d1.ID_DOI_BONG
+     JOIN DOI_BONG d2 ON t.ID_DOI_2 = d2.ID_DOI_BONG
     WHERE c.ID_DOI_BONG = $id_doi
     ORDER BY hs.NGAY DESC
 ");
@@ -89,8 +89,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['them_hieusuat'])) {
     }
 
     h2 {
-        font-family: 'Bebas Neue', cursive;
-        font-size: 40px;
+        font-family: 'Inter', sans-serif;
+        font-size: 42px;
         color: #d90429;
         margin-bottom: 30px;
     }

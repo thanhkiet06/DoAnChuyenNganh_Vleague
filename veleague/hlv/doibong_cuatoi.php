@@ -39,8 +39,8 @@ $giai = $conn->query("SELECT TEN_GIAI_DAU FROM GIAI_DAU WHERE ID_GIAI_DAU = $id_
         }
 
         h2 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 38px;
+            font-family: 'Inter', sans-serif;
+            font-size: 42px;
             color: #d90429;
             margin-bottom: 30px;
         }

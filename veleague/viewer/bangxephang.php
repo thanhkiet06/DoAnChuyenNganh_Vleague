@@ -17,43 +17,60 @@ $result = $conn->query("SELECT bxh.*, d.TEN_DOI_BONG
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f2f4f8;
-        }
+   <style>
+    /* Import font Google */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@300;400;500;700&display=swap');
 
-        .title {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 48px;
-            color: #d90429;
-            margin-top: 30px;
-        }
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f2f4f8;
+        font-size: 16px;
+        line-height: 1.6;
+    }
 
-        .table thead {
-            background-color: #d90429;
-            color: white;
-        }
+    .title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 46px;
+        color: #d90429;
+        margin-top: 30px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
 
-        .table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
+    .table thead {
+        background-color: #d90429;
+        color: white;
+        font-weight: 600;
+        font-size: 17px;
+    }
 
-        .container {
-            padding-top: 40px;
-            padding-bottom: 60px;
-        }
+    .table tbody tr {
+        font-size: 16px;
+    }
 
-        .btn-back {
-            background-color: #d90429;
-            color: white;
-            font-weight: 500;
-        }
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
 
-        .btn-back:hover {
-            background-color: #b40221;
-        }
-    </style>
+    .container {
+        padding-top: 40px;
+        padding-bottom: 60px;
+    }
+
+    .btn-back {
+        background-color: #d90429;
+        color: white;
+        font-weight: 600;
+        padding: 8px 18px;
+        border-radius: 6px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .btn-back:hover {
+        background-color: #b40221;
+    }
+</style>
+
 </head>
 <body>
 

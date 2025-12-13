@@ -80,13 +80,14 @@ if ($keyword != '') {
         max-width: 960px;
     }
 
-    .title {
-        font-family: 'Bebas Neue', cursive;
-        font-size: 42px;
-        color: #d90429;
-        text-align: center;
-        margin-bottom: 30px;
-    }
+  .title {
+         font-size: 40px;
+         font-weight: 700;
+         text-align: center;
+         margin-bottom: 35px;
+         color: #c80e2a;
+         letter-spacing: 1px;
+}
 
     .form-control {
         font-size: 18px;

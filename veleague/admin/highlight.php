@@ -116,8 +116,8 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     }
 
     .title {
-        font-family: 'Bebas Neue', cursive;
-        font-size: 44px;
+        font-family: 'Bebas Neue', cursive;    
+        font-size: 42px;
         color: #d90429;
     }
 

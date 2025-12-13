@@ -46,13 +46,13 @@ $result = $conn->query($sql);
         }
 
         .container {
-            padding-top: 40px;
+            padding-top: 42px;
             max-width: 1100px;
         }
 
         h2 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 40px;
+            font-family: 'Inter', sans-serif;
+            font-size: 42px;
             color: #d90429;
             margin-bottom: 30px;
         }
