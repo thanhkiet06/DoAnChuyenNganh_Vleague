@@ -3,38 +3,74 @@ require '../auth.php';
 require_role('admin');
 require '../connect.php';
 
-$id = $_GET['id'];
+$id = (int)$_GET['id'];
 $u = $conn->query("SELECT * FROM NGUOI_DUNG WHERE ID_NGUOI_DUNG = $id")->fetch_assoc();
 
-// Danh sách đội bóng chưa có HLV hoặc là đội đang gán với user hiện tại
+// Danh sách đội bóng chưa có HLV hoặc đang gán với user này
 $doibong = $conn->query("
     SELECT * FROM DOI_BONG 
-    WHERE HUAN_LUYEN_VIEN IS NULL OR HUAN_LUYEN_VIEN = '{$u['TEN_DANG_NHAP']}'
+    WHERE HUAN_LUYEN_VIEN IS NULL 
+       OR HUAN_LUYEN_VIEN = '{$u['TEN_DANG_NHAP']}'
 ");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $ten = $_POST['ten'];
-    $mk = $_POST['mk'];
-    $email = $_POST['email'];
-    $sdt = $_POST['sdt'];
-    $ngay = $_POST['ngay'];
+
+    $ten    = trim($_POST['ten']);
+    $mk     = $_POST['mk'];
+    $email  = trim($_POST['email']);
+    $sdt    = trim($_POST['sdt']);
+    $ngay   = $_POST['ngay'];
     $vaitro = $_POST['vaitro'];
     $id_doi = $_POST['id_doi'] ?? null;
 
+    /* =============================
+       XỬ LÝ MẬT KHẨU ĐÚNG CÁCH
+       ============================= */
+
+    // Nếu admin KHÔNG đổi mật khẩu → giữ nguyên hash cũ
+    if ($mk === '' || password_verify($mk, $u['MAT_KHAU'])) {
+        $hash = $u['MAT_KHAU'];
+    } else {
+        // Nếu nhập mật khẩu mới → hash lại
+        $hash = password_hash($mk, PASSWORD_DEFAULT);
+    }
+
     // Cập nhật người dùng
-    $stmt = $conn->prepare("UPDATE NGUOI_DUNG SET TEN_DANG_NHAP=?, MAT_KHAU=?, EMAIL=?, SDT=?, NGAY_SINH=?, VAI_TRO=? WHERE ID_NGUOI_DUNG=?");
-    $stmt->bind_param("ssssssi", $ten, $mk, $email, $sdt, $ngay, $vaitro, $id);
+    $stmt = $conn->prepare("
+        UPDATE NGUOI_DUNG 
+        SET TEN_DANG_NHAP = ?, 
+            MAT_KHAU = ?, 
+            EMAIL = ?, 
+            SDT = ?, 
+            NGAY_SINH = ?, 
+            VAI_TRO = ?
+        WHERE ID_NGUOI_DUNG = ?
+    ");
+    $stmt->bind_param("ssssssi", $ten, $hash, $email, $sdt, $ngay, $vaitro, $id);
     $stmt->execute();
 
-    // Reset tất cả đội có HLV cũ là user này nếu đổi vai trò hoặc đội
-    $conn->query("UPDATE DOI_BONG SET HUAN_LUYEN_VIEN = NULL WHERE HUAN_LUYEN_VIEN = '{$u['TEN_DANG_NHAP']}'");
+    // Reset HLV cũ
+    $stmt2 = $conn->prepare("
+        UPDATE DOI_BONG 
+        SET HUAN_LUYEN_VIEN = NULL 
+        WHERE HUAN_LUYEN_VIEN = ?
+    ");
+    $stmt2->bind_param("s", $u['TEN_DANG_NHAP']);
+    $stmt2->execute();
 
-    // Gán lại nếu là HLV và chọn đội
-    if ($vaitro === 'hlv' && $id_doi) {
-        $conn->query("UPDATE DOI_BONG SET HUAN_LUYEN_VIEN = '$ten' WHERE ID_DOI_BONG = $id_doi");
+    // Gán lại nếu là HLV
+    if ($vaitro === 'hlv' && !empty($id_doi)) {
+        $stmt3 = $conn->prepare("
+            UPDATE DOI_BONG 
+            SET HUAN_LUYEN_VIEN = ? 
+            WHERE ID_DOI_BONG = ?
+        ");
+        $stmt3->bind_param("si", $ten, $id_doi);
+        $stmt3->execute();
     }
 
     header("Location: nguoidung.php");
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -43,73 +79,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <title>Sửa người dùng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            padding: 40px;
-        }
-
-        .heading {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 32px;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            font-weight: 500;
-        }
-    </style>
 </head>
-<body>
+<body class="bg-light">
 
-<div class="container col-md-6">
-    <h1 class="heading"><i class="bi bi-pencil-fill me-2"></i>Sửa thông tin người dùng</h1>
+<div class="container col-md-6 mt-5">
+    <h3 class="mb-3">✏️ Sửa người dùng</h3>
 
     <form method="POST" class="bg-white p-4 rounded shadow-sm">
+
         <div class="mb-3">
             <label class="form-label">Tên đăng nhập</label>
-            <input type="text" name="ten" class="form-control" required value="<?= $u['TEN_DANG_NHAP'] ?>">
+            <input type="text" name="ten" class="form-control"
+                   value="<?= htmlspecialchars($u['TEN_DANG_NHAP']) ?>" required>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Mật khẩu</label>
-            <input type="text" name="mk" class="form-control" required value="<?= $u['MAT_KHAU'] ?>">
+            <label class="form-label">Mật khẩu mới (để trống nếu không đổi)</label>
+            <input type="password" name="mk" class="form-control">
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" required value="<?= $u['EMAIL'] ?>">
+<label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control"
+                   value="<?= htmlspecialchars($u['EMAIL']) ?>" required>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Số điện thoại</label>
-            <input type="text" name="sdt" class="form-control" value="<?= $u['SDT'] ?>">
+            <label class="form-label">SĐT</label>
+            <input type="text" name="sdt" class="form-control"
+                   value="<?= htmlspecialchars($u['SDT']) ?>">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Ngày sinh</label>
-            <input type="date" name="ngay" class="form-control" value="<?= $u['NGAY_SINH'] ?>">
+            <input type="date" name="ngay" class="form-control"
+                   value="<?= $u['NGAY_SINH'] ?>">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Vai trò</label>
-            <select name="vaitro" class="form-select" required>
-                <option value="admin" <?= $u['VAI_TRO'] == 'admin' ? 'selected' : '' ?>>Admin</option>
-                <option value="hlv" <?= $u['VAI_TRO'] == 'hlv' ? 'selected' : '' ?>>HLV</option>
-                <option value="viewer" <?= $u['VAI_TRO'] == 'viewer' ? 'selected' : '' ?>>Viewer</option>
+            <select name="vaitro" class="form-select" id="role">
+                <option value="admin" <?= $u['VAI_TRO']=='admin'?'selected':'' ?>>Admin</option>
+                <option value="hlv" <?= $u['VAI_TRO']=='hlv'?'selected':'' ?>>HLV</option>
+                <option value="viewer" <?= $u['VAI_TRO']=='viewer'?'selected':'' ?>>Viewer</option>
             </select>
         </div>
 
-        <div class="mb-3" id="doibong-group" style="display: none;">
-            <label class="form-label">Gán vào đội bóng</label>
+        <div class="mb-3" id="doibong-group">
+            <label class="form-label">Đội bóng</label>
             <select name="id_doi" class="form-select">
-                <option value="">-- Không thay đổi --</option>
+                <option value="">-- Không gán --</option>
                 <?php while ($d = $doibong->fetch_assoc()) { ?>
-                    <option value="<?= $d['ID_DOI_BONG'] ?>" <?= $d['HUAN_LUYEN_VIEN'] == $u['TEN_DANG_NHAP'] ? 'selected' : '' ?>>
+                    <option value="<?= $d['ID_DOI_BONG'] ?>"
+                        <?= $d['HUAN_LUYEN_VIEN'] == $u['TEN_DANG_NHAP'] ? 'selected' : '' ?>>
                         <?= $d['TEN_DOI_BONG'] ?>
                     </option>
                 <?php } ?>
@@ -117,23 +139,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <div class="d-flex justify-content-between">
-            <a href="nguoidung.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
-            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Cập nhật</button>
+            <a href="nguoidung.php" class="btn btn-secondary">Quay lại</a>
+            <button class="btn btn-success">Cập nhật</button>
         </div>
+
     </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const roleSelect = document.querySelector('select[name="vaitro"]');
-    const doiGroup = document.getElementById('doibong-group');
+const role = document.getElementById('role');
+const doi = document.getElementById('doibong-group');
 
-    function toggleDoiBong() {
-        doiGroup.style.display = roleSelect.value === 'hlv' ? 'block' : 'none';
-    }
-
-    toggleDoiBong();
-    roleSelect.addEventListener('change', toggleDoiBong);
+function toggle() {
+    doi.style.display = role.value === 'hlv' ? 'block' : 'none';
+}
+toggle();
+role.addEventListener('change', toggle);
 </script>
+
 </body>
 </html>

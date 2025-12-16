@@ -15,14 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['doi1']) && isset($_PO
     $doi1 = $conn->query("
         SELECT d.TEN_DOI_BONG, bxh.*
         FROM DOI_BONG d
-        LEFT JOIN BANG_XEP_HANG bxh ON d.ID_DOI_BONG = bxh.ID_DOI_BONG
+         JOIN BANG_XEP_HANG bxh ON d.ID_DOI_BONG = bxh.ID_DOI_BONG
         WHERE d.ID_DOI_BONG = $id_doi1
     ")->fetch_assoc();
 
     $doi2 = $conn->query("
         SELECT d.TEN_DOI_BONG, bxh.*
         FROM DOI_BONG d
-        LEFT JOIN BANG_XEP_HANG bxh ON d.ID_DOI_BONG = bxh.ID_DOI_BONG
+         JOIN BANG_XEP_HANG bxh ON d.ID_DOI_BONG = bxh.ID_DOI_BONG
         WHERE d.ID_DOI_BONG = $id_doi2
     ")->fetch_assoc();
 

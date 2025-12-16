@@ -4,7 +4,7 @@ require_role('admin');
 require '../connect.php';
 
 $result = $conn->query("SELECT d.*, g.TEN_GIAI_DAU FROM DOI_BONG d 
-                        LEFT JOIN GIAI_DAU g ON d.ID_GIAI_DAU = g.ID_GIAI_DAU");
+                         JOIN GIAI_DAU g ON d.ID_GIAI_DAU = g.ID_GIAI_DAU");
 ?>
 <!DOCTYPE html>
 <html lang="vi">

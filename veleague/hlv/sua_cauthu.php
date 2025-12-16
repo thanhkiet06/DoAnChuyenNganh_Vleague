@@ -11,43 +11,84 @@ if (!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 $hlv = $_SESSION['ten_dang_nhap'];
 
-// Lấy thông tin đội của HLV
-$team = $conn->query("SELECT ID_DOI_BONG FROM DOI_BONG WHERE HUAN_LUYEN_VIEN = '$hlv'")->fetch_assoc();
+/* Lấy đội của HLV */
+$stmt = $conn->prepare("SELECT ID_DOI_BONG FROM DOI_BONG WHERE HUAN_LUYEN_VIEN = ?");
+$stmt->bind_param("s", $hlv);
+$stmt->execute();
+$team = $stmt->get_result()->fetch_assoc();
+
 if (!$team) {
-    echo "Bạn không có quyền sửa cầu thủ.";
-    exit;
+    die("Bạn không có quyền.");
 }
 
 $id_doi = $team['ID_DOI_BONG'];
 
-// Kiểm tra cầu thủ có thuộc đội không
-$player = $conn->query("SELECT * FROM CAU_THU WHERE ID_CAU_THU = $id AND ID_DOI_BONG = $id_doi")->fetch_assoc();
+/* Kiểm tra cầu thủ */
+$stmt = $conn->prepare("SELECT * FROM CAU_THU WHERE ID_CAU_THU = ? AND ID_DOI_BONG = ?");
+$stmt->bind_param("ii", $id, $id_doi);
+$stmt->execute();
+$player = $stmt->get_result()->fetch_assoc();
+
 if (!$player) {
-    echo "Không tìm thấy cầu thủ.";
-    exit;
+    die("Không tìm thấy cầu thủ.");
 }
 
+/* ===== XỬ LÝ POST ===== */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
     $ho_ten = $_POST['ho_ten'];
     $ngay_sinh = $_POST['ngay_sinh'];
     $vi_tri = $_POST['vi_tri'];
     $so_ao = $_POST['so_ao'];
     $trang_thai = $_POST['trang_thai'];
-    $anh_moi = $_FILES['anh_dai_dien'];
 
-    $anh_dai_dien = $player['ANH_DAI_DIEN']; // giữ ảnh cũ mặc định
+    $anh_dai_dien = $player['ANH_DAI_DIEN'];
 
-    if ($anh_moi['error'] === 0 && $anh_moi['size'] > 0) {
-        $ten_anh = uniqid('img_') . '_' . basename($anh_moi['name']);
-        $duong_dan = '../uploads/' . $ten_anh;
+    /* Upload ảnh mới */
+    if (!empty($_FILES['anh_dai_dien']['name'])) {
 
-        if (move_uploaded_file($anh_moi['tmp_name'], $duong_dan)) {
-            $anh_dai_dien = $duong_dan;
+        $file = $_FILES['anh_dai_dien'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allow = ['jpg', 'jpeg', 'png', 'webp'];
+
+        if (!in_array($ext, $allow)) {
+            die("Chỉ cho phép ảnh JPG, PNG, WEBP");
+        }
+
+        $ten_moi = uniqid('player_') . '.' . $ext;
+        $duong_dan = "../uploads/" . $ten_moi;
+
+        if (move_uploaded_file($file['tmp_name'], $duong_dan)) {
+
+            /* Xóa ảnh cũ nếu có */
+            if (!empty($anh_dai_dien) && file_exists("../" . $anh_dai_dien)) {
+                unlink("../" . $anh_dai_dien);
+            }
+
+            /* Lưu đường dẫn chuẩn để hiển thị */
+            $anh_dai_dien = "uploads/" . $ten_moi;
         }
     }
 
-    $stmt = $conn->prepare("UPDATE CAU_THU SET HO_TEN=?, NGAY_SINH=?, VI_TRI=?, SO_AO=?, TRANG_THAI=?, ANH_DAI_DIEN=? WHERE ID_CAU_THU=? AND ID_DOI_BONG=?");
-    $stmt->bind_param("ssssssii", $ho_ten, $ngay_sinh, $vi_tri, $so_ao, $trang_thai, $anh_dai_dien, $id, $id_doi);
+    /* Update DB */
+    $stmt = $conn->prepare("
+        UPDATE CAU_THU 
+        SET HO_TEN=?, NGAY_SINH=?, VI_TRI=?, SO_AO=?, TRANG_THAI=?, ANH_DAI_DIEN=? 
+        WHERE ID_CAU_THU=? AND ID_DOI_BONG=?
+    ");
+
+    $stmt->bind_param(
+        "ssssssii",
+        $ho_ten,
+        $ngay_sinh,
+        $vi_tri,
+        $so_ao,
+        $trang_thai,
+        $anh_dai_dien,
+        $id,
+        $id_doi
+    );
+
     $stmt->execute();
 
     header("Location: cauthu.php");
@@ -66,40 +107,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <div class="container mt-5">
     <h2 class="mb-4">✏️ Sửa thông tin cầu thủ</h2>
+
     <form method="POST" enctype="multipart/form-data">
         <div class="mb-3">
             <label class="form-label">Họ tên</label>
-            <input type="text" name="ho_ten" class="form-control" value="<?= htmlspecialchars($player['HO_TEN']) ?>" required>
+            <input type="text" name="ho_ten" class="form-control"
+                   value="<?= htmlspecialchars($player['HO_TEN']) ?>" required>
         </div>
+
         <div class="mb-3">
             <label class="form-label">Ngày sinh</label>
-            <input type="date" name="ngay_sinh" class="form-control" value="<?= $player['NGAY_SINH'] ?>" required>
+            <input type="date" name="ngay_sinh" class="form-control"
+                   value="<?= $player['NGAY_SINH'] ?>" required>
         </div>
+
         <div class="mb-3">
             <label class="form-label">Vị trí</label>
-            <input type="text" name="vi_tri" class="form-control" value="<?= $player['VI_TRI'] ?>" required>
+            <input type="text" name="vi_tri" class="form-control"
+                   value="<?= $player['VI_TRI'] ?>" required>
         </div>
+
         <div class="mb-3">
             <label class="form-label">Số áo</label>
-            <input type="number" name="so_ao" class="form-control" value="<?= $player['SO_AO'] ?>" required>
+            <input type="number" name="so_ao" class="form-control"
+                   value="<?= $player['SO_AO'] ?>" required>
         </div>
+
         <div class="mb-3">
             <label class="form-label">Trạng thái</label>
-            <select name="trang_thai" class="form-select" required>
-                <option value="Đang thi đấu" <?= $player['TRANG_THAI'] == 'Đang thi đấu' ? 'selected' : '' ?>>Đang thi đấu</option>
-                <option value="Chấn thương" <?= $player['TRANG_THAI'] == 'Chấn thương' ? 'selected' : '' ?>>Chấn thương</option>
-                <option value="Dự bị" <?= $player['TRANG_THAI'] == 'Dự bị' ? 'selected' : '' ?>>Dự bị</option>
+            <select name="trang_thai" class="form-select">
+                <?php
+                $list = ['Đang thi đấu', 'Chấn thương', 'Dự bị'];
+                foreach ($list as $t) {
+                    $sel = $player['TRANG_THAI'] == $t ? 'selected' : '';
+                    echo "<option $sel>$t</option>";
+                }
+                ?>
             </select>
         </div>
+
         <div class="mb-3">
-            <label class="form-label">Ảnh đại diện (tùy chọn)</label><br>
+            <label class="form-label">Ảnh đại diện</label><br>
+
             <?php if (!empty($player['ANH_DAI_DIEN'])): ?>
-                <img src="<?= $player['ANH_DAI_DIEN'] ?>" alt="Ảnh cũ" style="width:80px;height:80px;border-radius:8px;margin-bottom:10px;"><br>
+                <img src="../<?= $player['ANH_DAI_DIEN'] ?>"
+                     style="width:90px;height:90px;border-radius:10px;margin-bottom:10px;"><br>
             <?php endif; ?>
+
             <input type="file" name="anh_dai_dien" class="form-control">
         </div>
-        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-        <a href="cauthu.php" class="btn btn-secondary ms-2">Quay lại</a>
+
+        <button type="submit" class="btn btn-primary">💾 Lưu</button>
+        <a href="cauthu.php" class="btn btn-secondary ms-2">⬅ Quay lại</a>
     </form>
 </div>
 
